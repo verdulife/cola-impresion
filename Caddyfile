@@ -1,0 +1,3 @@
+api.imprenta.tudominio.com {
+    reverse_proxy localhost:3001
+}

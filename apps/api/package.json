@@ -1,0 +1,26 @@
+{
+  "name": "@cola-impresion/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "migrate": "bun run src/db/migrate.ts",
+    "seed": "bun run src/db/seed.ts",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@cola-impresion/shared": "workspace:*",
+    "better-sqlite3": "^12.10.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.0.0",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^5.0.0"
+  }
+}

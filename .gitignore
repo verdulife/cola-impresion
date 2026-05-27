@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Databases
+*.db
+data/
+
+# Storage
+storage/
+
+# Build outputs
+.svelte-kit/
+dist/
+build/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
