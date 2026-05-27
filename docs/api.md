@@ -214,6 +214,34 @@ Lista todos los archivos de la sesión actual.
 
 ---
 
+### GET /files/:id
+
+Devuelve el detalle de un archivo con su configuración de impresión.
+
+**Respuesta 200:**
+```json
+{
+  "id": "uuid",
+  "name": "documento.pdf",
+  "mimeType": "application/pdf",
+  "sizeBytes": 245760,
+  "pageCount": 12,
+  "status": "pending",
+  "uploadedAt": 1700000000,
+  "expiresAt": 1707776000,
+  "config": {
+    "size": "A4",
+    "color": "bw",
+    "sides": "single",
+    "paper": "normal-90"
+  }
+}
+```
+
+**Errores:** `NOT_FOUND` (404), `FORBIDDEN` (403 si el archivo no pertenece a la sesión).
+
+---
+
 ### PATCH /files/:id/config
 
 Actualiza la configuración de impresión de un archivo. Se puede enviar solo
