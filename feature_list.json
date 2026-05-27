@@ -1,0 +1,164 @@
+[
+  {
+    "id": 1,
+    "app": "api",
+    "layer": "infrastructure",
+    "title": "Configuración inicial del monorepo y Docker",
+    "description": "Crear la estructura de carpetas del monorepo (apps/web, apps/admin, apps/api, packages/shared), configurar bun workspaces, Dockerfile y docker-compose para la API, y Caddy como reverse proxy con HTTPS automático.",
+    "status": "pending",
+    "depends_on": []
+  },
+  {
+    "id": 2,
+    "app": "api",
+    "layer": "infrastructure",
+    "title": "Base de datos SQLite con Drizzle ORM",
+    "description": "Configurar SQLite con Drizzle ORM en apps/api. Definir el schema completo: tablas users, files, print_configs, print_jobs, print_job_files. Crear migraciones iniciales y script de seed para desarrollo.",
+    "status": "pending",
+    "depends_on": [1]
+  },
+  {
+    "id": 3,
+    "app": "api",
+    "layer": "backend",
+    "title": "Autenticación: registro y login con cookie persistente",
+    "description": "Endpoints POST /auth/register y POST /auth/login. Hash de contraseña con bcrypt. Sesión guardada en cookie HttpOnly sin fecha de expiración. Endpoint POST /auth/logout. Middleware de autenticación reutilizable para rutas protegidas.",
+    "status": "pending",
+    "depends_on": [2]
+  },
+  {
+    "id": 4,
+    "app": "api",
+    "layer": "backend",
+    "title": "Subida de archivos al servidor",
+    "description": "Endpoint POST /files/upload. Validar tipo (PDF, JPG, PNG, TIFF) y tamaño máximo (50MB). Guardar en /storage/uploads/{user_id}/{file_id}_{filename}. Registrar en DB con estado 'pending' y fecha de expiración a 90 días. Devolver file_id y metadatos.",
+    "status": "pending",
+    "depends_on": [3]
+  },
+  {
+    "id": 5,
+    "app": "api",
+    "layer": "backend",
+    "title": "CRUD de configuración de impresión por archivo",
+    "description": "Endpoints GET /files, GET /files/:id, PATCH /files/:id/config, DELETE /files/:id. La configuración incluye: size (A4/A3/A5/A6), color (bw/color), sides (single/double), paper (normal-90/satin-135/matte-120/satin-300/matte-300/adhesive-matte/adhesive-gloss/textured-300). Valores por defecto: A4, bw, single, normal-90.",
+    "status": "pending",
+    "depends_on": [4]
+  },
+  {
+    "id": 6,
+    "app": "api",
+    "layer": "backend",
+    "title": "Motor de agrupación y generación del PDF combinado",
+    "description": "Lógica en packages/shared o apps/api que agrupa archivos de un cliente por combinación exacta de parámetros (size+color+sides+paper). Para cada grupo genera un único PDF fusionando los archivos originales. En grupos con sides=double, detecta documentos con número impar de páginas e inserta una página en blanco al final antes de fusionar. Usar pdf-lib para manipulación de PDFs.",
+    "status": "pending",
+    "depends_on": [5]
+  },
+  {
+    "id": 7,
+    "app": "api",
+    "layer": "backend",
+    "title": "Endpoints de descarga para el admin",
+    "description": "GET /admin/clients — lista de clientes con conteo de archivos pendientes. GET /admin/clients/:id — detalle de cliente con archivos agrupados por configuración. GET /admin/clients/:id/groups/:groupKey/download — genera y devuelve el PDF combinado del grupo; marca todos los archivos del grupo como 'printed'. GET /admin/files/:fileId/original — descarga el archivo original de un cliente. PATCH /admin/files/:fileId/status — cambia estado manualmente (printed <-> pending).",
+    "status": "pending",
+    "depends_on": [6]
+  },
+  {
+    "id": 8,
+    "app": "api",
+    "layer": "backend",
+    "title": "Sesión anónima: archivos en memoria de servidor",
+    "description": "Para usuarios no autenticados, los archivos subidos se asocian a un session_id generado en el servidor y guardado en cookie de sesión (sin persistencia en DB). Los archivos se eliminan del servidor al expirar la sesión. Endpoint POST /session/convert para migrar archivos anónimos a una cuenta recién creada.",
+    "status": "pending",
+    "depends_on": [4]
+  },
+  {
+    "id": 9,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Scaffolding y configuración de la app cliente (SvelteKit)",
+    "description": "Inicializar apps/web con SvelteKit + TypeScript + Tailwind + bun. Configurar el tema de Tailwind con los tokens de DESIGN.md. Configurar las rutas base: / (pantalla principal), /settings (ajustes e historial), /auth/login, /auth/register. Layout base con header mínimo.",
+    "status": "pending",
+    "depends_on": [1]
+  },
+  {
+    "id": 10,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Pantallas de login y registro",
+    "description": "Páginas /auth/login y /auth/register. Formularios minimalistas: solo email y contraseña. El login guarda la cookie de sesión. Redirección a / tras autenticación exitosa. Enlace entre las dos pantallas. Manejo de errores inline (no toast). Usuario anónimo puede acceder a / sin pasar por estas pantallas.",
+    "status": "pending",
+    "depends_on": [3, 9]
+  },
+  {
+    "id": 11,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Componente UploadZone",
+    "description": "Zona de subida de archivos según DESIGN.md: 100% ancho, aspect-ratio 1:1 en móvil, fondo surface-sunken, borde punteado. Soporta drag & drop y click para seleccionar. Acepta PDF, JPG, PNG, TIFF hasta 50MB. Muestra barra de progreso durante la subida. Estado de error visual si el formato no es válido. Al completar la subida, el archivo aparece en la cola.",
+    "status": "pending",
+    "depends_on": [4, 9]
+  },
+  {
+    "id": 12,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Componente FileCard y PrintConfig Panel",
+    "description": "FileCard según DESIGN.md: icono de tipo, nombre truncado, ConfigChips de configuración activa, botón de eliminar. Al tocar la tarjeta se expande el PrintConfig Panel inline: cuatro grupos de opciones (Tamaño, Color, Caras, Papel) con ConfigChips. Selección guarda automáticamente via PATCH /files/:id/config sin botón de confirmar.",
+    "status": "pending",
+    "depends_on": [5, 11]
+  },
+  {
+    "id": 13,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Pantalla principal: layout sin scroll global",
+    "description": "Layout de la pantalla / con UploadZone en la mitad superior y lista de FileCards en la mitad inferior con scroll interno propio. En móvil ambos bloques deben caber en el viewport sin scroll de página. UserSettingsButton fijo en esquina superior derecha. AnonymousBanner si el usuario no está autenticado (aparece una vez por sesión).",
+    "status": "pending",
+    "depends_on": [11, 12]
+  },
+  {
+    "id": 14,
+    "app": "web",
+    "layer": "frontend",
+    "title": "Página de ajustes e historial del cliente",
+    "description": "Página /settings con dos secciones: datos de cuenta (email, botón de cerrar sesión con aviso si es anónimo) y historial de archivos (lista de archivos impresos con fecha, configuración usada y botón 'Reimprimir' que cambia el estado a pending). Si es usuario anónimo, el historial muestra solo los archivos de la sesión actual.",
+    "status": "pending",
+    "depends_on": [5, 10]
+  },
+  {
+    "id": 15,
+    "app": "admin",
+    "layer": "frontend",
+    "title": "Scaffolding y configuración de la app admin (SvelteKit)",
+    "description": "Inicializar apps/admin con SvelteKit + TypeScript + Tailwind + bun. Mismo tema de Tailwind que apps/web (compartido desde packages/shared o duplicado). Rutas base: / (lista de clientes), /clients/:id (detalle de cliente). Login de admin independiente con usuario/contraseña fijo en variables de entorno para V1. Layout desktop-first con sidebar o topbar.",
+    "status": "pending",
+    "depends_on": [1]
+  },
+  {
+    "id": 16,
+    "app": "admin",
+    "layer": "frontend",
+    "title": "Lista de clientes con indicador de pendientes",
+    "description": "Pantalla principal del admin: tabla de clientes con columnas nombre, email, archivos pendientes (badge naranja con número), fecha del último pedido. Ordenada por 'tiene pendientes primero, luego por fecha'. Fila completa clickable. Búsqueda por nombre o email. Sin paginación en V1 (máximo esperado: centenares de clientes).",
+    "status": "pending",
+    "depends_on": [7, 15]
+  },
+  {
+    "id": 17,
+    "app": "admin",
+    "layer": "frontend",
+    "title": "Detalle de cliente: archivos agrupados y descarga de PDFs",
+    "description": "Pantalla /clients/:id con el nombre del cliente y sus archivos agrupados por configuración de impresión (componente AdminFileGroup de DESIGN.md). Cada grupo muestra: etiquetas de configuración, lista de archivos con nombre y páginas, botón 'Descargar PDF combinado'. Al descargar, los archivos del grupo se marcan como impresos automáticamente. Sección separada para archivos ya impresos con botón 'Reimprimir' individual.",
+    "status": "pending",
+    "depends_on": [7, 15]
+  },
+  {
+    "id": 18,
+    "app": "api",
+    "layer": "backend",
+    "title": "Limpieza automática de archivos expirados",
+    "description": "Job periódico (cron interno en Bun) que se ejecuta una vez al día. Busca archivos con expires_at anterior a la fecha actual y estado distinto de 'printed'. Elimina el archivo físico del servidor y marca el registro en DB como expirado. Log de archivos eliminados para auditoría.",
+    "status": "pending",
+    "depends_on": [5]
+  }
+]
