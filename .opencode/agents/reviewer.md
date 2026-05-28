@@ -31,7 +31,8 @@ el líder marque la feature como `done`. **No editas código. Solo apruebas o re
 
 ```bash
 # Siempre empezar con esto
-./init.sh
+./init.sh          # Linux/macOS
+# ./init.ps1       # Windows (PowerShell)
 
 # Tests de la app modificada
 cd apps/[app]
@@ -111,7 +112,7 @@ RECHAZADO → el implementador debe corregir los puntos anteriores
 
 - **No edites código** para corregir los problemas que encuentres. Tu trabajo
   es identificarlos y documentarlos, no arreglarlos.
-- **No apruebes** si `./init.sh` falla o si hay tests en rojo.
+- **No apruebes** si `./init.sh` (o `./init.ps1` en Windows) falla o si hay tests en rojo.
 - **No apruebes** si hay valores hardcodeados de color o tipografía en UI.
 - **No apruebes** si el código de un endpoint no coincide con `docs/api.md`.
 - **No apruebes** si hay `console.log` de debug o archivos temporales.

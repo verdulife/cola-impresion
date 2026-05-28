@@ -9,12 +9,12 @@
 ## C1 — El arnés está completo y operativo
 
 - [ ] Existen todos los archivos base: `AGENTS.md`, `CHECKPOINTS.md`, `DESIGN.md`,
-      `feature_list.json`, `init.sh`, `progress/current.md`, `progress/history.md`.
+      `feature_list.json`, `init.sh`, `init.ps1`, `progress/current.md`, `progress/history.md`.
 - [ ] Existen todos los docs: `docs/architecture.md`, `docs/conventions.md`,
       `docs/ux.md`, `docs/api.md`, `docs/infrastructure.md`, `docs/verification.md`.
 - [ ] Existen las definiciones de agentes: `.opencode/agents/leader.md`,
       `.opencode/agents/implementer.md`, `.opencode/agents/reviewer.md`.
-- [ ] `./init.sh` termina con exit code 0 y sin errores.
+- [ ] `./init.sh` (Linux/macOS) o `./init.ps1` (Windows) termina con exit code 0 y sin errores.
 
 ---
 
@@ -71,7 +71,7 @@
 - [ ] Los tests de la API prueban el endpoint real, no mocks de la lógica interna.
 - [ ] El agrupador de PDFs tiene tests con casos de: documentos par, documentos
       impar (deben añadir página en blanco), y múltiples clientes en el mismo lote.
-- [ ] `./init.sh` muestra todos los tests en verde.
+- [ ] `./init.sh` (o `./init.ps1` en Windows) muestra todos los tests en verde.
 
 ---
 

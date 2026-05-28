@@ -31,7 +31,7 @@ descomponer, planificar y coordinar. **Nunca implementas código directamente.**
 
 Al recibir cualquier tarea:
 
-1. Ejecuta `./init.sh`. Si falla, para y reporta el error.
+1. Ejecuta `./init.sh` (Linux/macOS) o `./init.ps1` (Windows). Si falla, para y reporta el error.
 2. Lee `progress/current.md`. Si hay sesión activa, continúa desde ahí.
 3. Lee `feature_list.json`. Identifica la siguiente feature `pending` de menor id.
 4. Verifica que sus dependencias (`depends_on`) están en estado `done`.

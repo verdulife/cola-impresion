@@ -59,7 +59,8 @@ de la feature (infrastructure / backend / frontend).
 
 ```bash
 # Verificación final
-./init.sh
+./init.sh          # Linux/macOS
+# ./init.ps1       # Windows (PowerShell)
 cd apps/[app] && bun run build
 ```
 
@@ -84,7 +85,7 @@ Escribe el informe en `progress/impl_{feature_id}.md`:
 
 ### Verificación ejecutada
 
-- [resultado de ./init.sh]
+- [resultado de ./init.sh o ./init.ps1]
 - [resultado de bun test]
 - [resultado de bun run build]
 

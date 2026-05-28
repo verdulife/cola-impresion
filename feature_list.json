@@ -59,7 +59,7 @@
     "layer": "backend",
     "title": "Endpoints de descarga para el admin",
     "description": "GET /admin/clients — lista de clientes con conteo de archivos pendientes. GET /admin/clients/:id — detalle de cliente con archivos agrupados por configuración. GET /admin/clients/:id/groups/:groupKey/download — genera y devuelve el PDF combinado del grupo; marca todos los archivos del grupo como 'printed'. GET /admin/files/:fileId/original — descarga el archivo original de un cliente. PATCH /admin/files/:fileId/status — cambia estado manualmente (printed <-> pending).",
-    "status": "pending",
+    "status": "done",
     "depends_on": [6]
   },
   {
@@ -68,7 +68,7 @@
     "layer": "backend",
     "title": "Sesión anónima: archivos en memoria de servidor",
     "description": "Para usuarios no autenticados, los archivos subidos se asocian a un session_id generado en el servidor y guardado en cookie de sesión (sin persistencia en DB). Los archivos se eliminan del servidor al expirar la sesión. Endpoint POST /session/convert para migrar archivos anónimos a una cuenta recién creada.",
-    "status": "pending",
+    "status": "done",
     "depends_on": [4]
   },
   {

@@ -8,8 +8,10 @@
 
 ## 1. Antes de empezar (obligatorio)
 
-1. Ejecuta `./init.sh` y verifica que termina sin errores. Si falla, **para**
+1. Ejecuta el script de verificación y confirma que termina sin errores. Si falla, **para**
    y resuelve el problema antes de tocar código.
+   - **Linux/macOS:** `./init.sh`
+   - **Windows (PowerShell):** `./init.ps1`
 2. Lee `progress/current.md` para entender en qué estado quedó la última sesión.
 3. Lee `feature_list.json` y elige **una** tarea con estado `pending`. No
    trabajes en más de una a la vez.
@@ -52,7 +54,8 @@ cola-impresion/
 ├── CHECKPOINTS.md    # Criterios de verificación
 ├── DESIGN.md         # Sistema de diseño
 ├── feature_list.json # Lista de features
-└── init.sh           # Script de verificación del entorno
+├── init.sh           # Script de verificación (Linux/macOS)
+├── init.ps1          # Script de verificación (Windows PowerShell)
 ```
 
 ---
@@ -60,7 +63,7 @@ cola-impresion/
 ## 4. Reglas duras (no negociables)
 
 - **Una sola feature a la vez.** No mezcles cambios de varias tareas en la misma sesión.
-- **No declares una tarea `done` sin verificación real.** Ejecuta `./init.sh` y comprueba que todo pasa.
+- **No declares una tarea `done` sin verificación real.** Ejecuta `./init.sh` (o `./init.ps1` en Windows) y comprueba que todo pasa.
 - **Documenta mientras trabajas**, no al final. Escribe en `progress/current.md` a medida que avanzas.
 - **Lee DESIGN.md antes de cualquier UI.** Nunca inventes colores, tipografías o espaciados.
 - **Lee docs/api.md antes de cualquier endpoint.** El contrato de la API es la fuente de verdad.
@@ -85,7 +88,7 @@ cola-impresion/
 
 Antes de terminar:
 
-1. Ejecuta `./init.sh` — todo verde.
+1. Ejecuta `./init.sh` (o `./init.ps1` en Windows) — todo verde.
 2. Si la tarea está acabada: marca `status: "done"` en `feature_list.json`.
 3. Mueve el resumen de `progress/current.md` al final de `progress/history.md`.
 4. Vacía `progress/current.md` dejando solo la plantilla vacía.

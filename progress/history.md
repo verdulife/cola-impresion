@@ -105,3 +105,43 @@ Implementación del backend completo de la API: base de datos SQLite con Drizzle
 - **Total: 44 tests, 0 fallos**
 
 ---
+
+## Sesión 2026-05-28
+
+**Features:** 7 y 8 — Backend completo (endpoints admin + sesión anónima)
+**App:** api
+**Duración:** ~1h
+
+### Resumen
+Implementación de los endpoints de administración (lista de clientes, detalle con grupos, descarga de PDFs combinados, descarga de archivos originales, cambio manual de estado) y el sistema de sesión anónima (uploads sin autenticación, migración automática al registrarse).
+
+### Archivos creados / modificados
+- `apps/api/src/middleware/adminAuth.ts` — auth admin independiente con cookie admin_session
+- `apps/api/src/routes/admin.ts` — 6 endpoints admin (login, clients, detail, download, original, status)
+- `apps/api/src/routes/admin.test.ts` — 16 tests de endpoints admin
+- `apps/api/src/routes/session.ts` — POST /session/convert para migrar archivos anónimos
+- `apps/api/src/routes/session.test.ts` — 10 tests de flujo anónimo
+- `apps/api/src/middleware/auth.ts` — optionalAuthMiddleware, sesiones anónimas, AppEnv extendido
+- `apps/api/src/routes/files.ts` — todos los endpoints funcionan con userId O sessionId
+- `apps/api/src/routes/auth.ts` — GET /auth/me soporta anonymous, POST /auth/register migra archivos
+- `apps/api/src/services/storage.ts` — saveAnonymousFile, moveAnonymousFiles
+- `apps/api/src/index.ts` — registro de rutas /session
+- `docs/api.md` — sección POST /admin/login añadida
+- `init.ps1` — script de verificación para Windows PowerShell
+- `AGENTS.md`, `CHECKPOINTS.md`, `docs/verification.md`, `docs/architecture.md` — documentación de init.ps1
+- `.opencode/agents/*.md` — referencias a init.ps1
+
+### Decisiones relevantes
+- **Auth admin independiente**: cookie `admin_session` separada de la cookie de cliente, sesiones en Map propio.
+- **Admin system user** (ID='admin') para satisfacer la FK constraint de `print_jobs.admin_id`.
+- **optionalAuthMiddleware**: crea sesión anónima automáticamente si no hay cookie, permite uploads sin registro previo.
+- **Condición de propiedad dual**: `userId` O `sessionId + isNull(userId)` previene acceso cruzado entre sesiones.
+- **convertAnonymousSession()** como función exportable reutilizada por `/auth/register` y `/session/convert`.
+- **moveAnonymousFiles()** devuelve Map<oldPath, newPath> para actualizar storage_path en DB con precisión.
+
+### Tests añadidos
+- `src/routes/admin.test.ts` — 16 tests (login, clients, detail, download, original, status, auth)
+- `src/routes/session.test.ts` — 10 tests (upload anónimo, aislamiento, config, delete, migración)
+- **Total: 70 tests, 0 fallos**
+
+---

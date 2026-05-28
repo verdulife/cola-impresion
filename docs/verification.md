@@ -13,7 +13,7 @@
 - [ ] `docker compose ps` muestra todos los contenedores en estado `running`.
 - [ ] La API responde en `http://localhost:3001/health` con `{ "ok": true }`.
 - [ ] Los volúmenes `/data` y `/storage` existen y tienen permisos de escritura.
-- [ ] `./init.sh` termina con exit code 0.
+- [ ] `./init.sh` (Linux/macOS) o `./init.ps1` (Windows) termina con exit code 0.
 
 ---
 
@@ -139,7 +139,8 @@ bun test src/services/pdf-merger.test.ts --verbose
 
 ```bash
 # Desde la raíz del monorepo
-./init.sh
+./init.sh          # Linux/macOS
+# ./init.ps1       # Windows (PowerShell)
 
 # Si hay apps con código nuevo, compilar todas
 cd apps/api && bun run build && cd ../..

@@ -33,19 +33,23 @@
 
 ## Decisiones tomadas
 
-<!-- Documenta aquí cualquier decisión no obvia que tomes durante la implementación.
-     Esto permite que el agente revisor y sesiones futuras entiendan el "por qué". -->
+- Auth admin independiente: cookie `admin_session` separada, sesiones en Map propio, HMAC con prefijo "admin-"
+- Admin system user (ID='admin') para FK constraint en print_jobs.admin_id
+- Nota dúplex generada en handler para coincidir con contrato API (singular/plural)
+- printedAt usa uploadedAt como fallback para archivos marcados manualmente
 
 ---
 
 ## Bloqueos / pendientes
 
-<!-- Si algo no funciona como se esperaba, documéntalo aquí antes de parar -->
+- Ninguno. Feature completa.
 
 ---
 
 ## Archivos modificados
 
-<!-- Lista de archivos creados o editados en esta sesión -->
-
--
+- `apps/api/src/middleware/adminAuth.ts` — creado
+- `apps/api/src/routes/admin.ts` — creado
+- `apps/api/src/routes/admin.test.ts` — creado
+- `apps/api/src/index.ts` — modificado (registro de rutas admin)
+- `progress/impl_7.md` — creado (informe de implementación)

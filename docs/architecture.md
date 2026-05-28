@@ -22,7 +22,8 @@ cola-impresion/                  ← raíz del monorepo
 ├── CHECKPOINTS.md
 ├── DESIGN.md
 ├── feature_list.json
-└── init.sh
+├── init.sh           # Script de verificación (Linux/macOS)
+├── init.ps1          # Script de verificación (Windows PowerShell)
 ```
 
 ---
