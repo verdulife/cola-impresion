@@ -6,13 +6,15 @@ import type { Context } from 'hono'
 
 export type AppEnv = {
   Variables: {
-    userId: string
-    sessionId: string
+    userId?: string
+    sessionId?: string
+    isAnonymous?: boolean
   }
 }
 
 type Session = {
-  userId: string
+  userId?: string
+  anonymous?: boolean
   createdAt: number
 }
 
@@ -68,6 +70,19 @@ export async function createSession(userId: string): Promise<string> {
   return signValue(sessionId)
 }
 
+export async function createAnonymousSession(): Promise<{
+  sessionId: string
+  signedValue: string
+}> {
+  const sessionId = crypto.randomUUID()
+  sessions.set(sessionId, {
+    anonymous: true,
+    createdAt: Math.floor(Date.now() / 1000),
+  })
+  const signedValue = await signValue(sessionId)
+  return { sessionId, signedValue }
+}
+
 export function getSession(sessionId: string): Session | undefined {
   return sessions.get(sessionId)
 }
@@ -116,7 +131,7 @@ export async function resolveSession(
 export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   const result = await resolveSession(c)
 
-  if (!result) {
+  if (!result || !result.session.userId) {
     return c.json(
       { error: 'UNAUTHORIZED', message: 'Sesión no válida o expirada' },
       401,
@@ -125,5 +140,37 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
 
   c.set('userId', result.session.userId)
   c.set('sessionId', result.sessionId)
+  c.set('isAnonymous', false)
+  await next()
+})
+
+// --- Middleware de autenticación opcional (permite anónimos) ---
+
+export const optionalAuthMiddleware = createMiddleware<AppEnv>(async (c, next) => {
+  const result = await resolveSession(c)
+
+  if (result) {
+    if (result.session.anonymous) {
+      c.set('sessionId', result.sessionId)
+      c.set('isAnonymous', true)
+    } else if (result.session.userId) {
+      c.set('userId', result.session.userId)
+      c.set('sessionId', result.sessionId)
+      c.set('isAnonymous', false)
+    } else {
+      // Sesión inválida (sin userId ni anonymous) — crear anónima
+      const anon = await createAnonymousSession()
+      setSessionCookie(c, anon.signedValue)
+      c.set('sessionId', anon.sessionId)
+      c.set('isAnonymous', true)
+    }
+  } else {
+    // Sin sesión — crear sesión anónima
+    const anon = await createAnonymousSession()
+    setSessionCookie(c, anon.signedValue)
+    c.set('sessionId', anon.sessionId)
+    c.set('isAnonymous', true)
+  }
+
   await next()
 })

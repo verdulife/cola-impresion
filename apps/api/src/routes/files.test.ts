@@ -173,9 +173,9 @@ describe('POST /files/upload', () => {
     expect(data.message).toBeDefined()
   })
 
-  test('devuelve 401 sin autenticación', async () => {
+  test('sube archivo sin autenticación creando sesión anónima', async () => {
     const pdfBytes = await createTestPdf(1)
-    const file = new File([pdfBytes], 'documento.pdf', {
+    const file = new File([pdfBytes], 'anon-documento.pdf', {
       type: 'application/pdf',
     })
 
@@ -187,10 +187,15 @@ describe('POST /files/upload', () => {
       body: formData,
     })
 
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(201)
 
     const data = await res.json()
-    expect(data.error).toBe('UNAUTHORIZED')
+    expect(data.file).toBeDefined()
+    expect(data.file.id).toBeDefined()
+
+    // Verificar que se estableció cookie de sesión anónima
+    const cookie = extractSessionCookie(res)
+    expect(cookie).not.toBeNull()
   })
 
   test('el archivo se guarda en disco', async () => {
@@ -319,15 +324,16 @@ describe('GET /files', () => {
     expect(data.files[0].status).toBe('pending')
   })
 
-  test('devuelve 401 sin autenticación', async () => {
+  test('devuelve lista vacía sin autenticación previa (crea sesión anónima)', async () => {
     const res = await app.request('/files', {
       method: 'GET',
     })
 
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
 
     const data = await res.json()
-    expect(data.error).toBe('UNAUTHORIZED')
+    expect(data.files).toBeDefined()
+    expect(data.files.length).toBe(0)
   })
 })
 

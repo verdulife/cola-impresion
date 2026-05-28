@@ -10,6 +10,7 @@ import {
   setSessionCookie,
   clearSessionCookie,
 } from '../middleware/auth'
+import { convertAnonymousSession } from './session'
 
 const auth = new Hono<AppEnv>()
 
@@ -90,7 +91,13 @@ auth.post('/register', async (c) => {
     throw err
   }
 
-  // Crear sesión y establecer cookie
+  // Si hay sesión anónima activa, migrar archivos a la cuenta nueva
+  const existingSession = await resolveSession(c)
+  if (existingSession && existingSession.session.anonymous) {
+    await convertAnonymousSession(existingSession.sessionId, id)
+  }
+
+  // Crear sesión autenticada y establecer cookie
   const signedSession = await createSession(id)
   setSessionCookie(c, signedSession)
 
@@ -185,12 +192,16 @@ auth.get('/me', async (c) => {
 
   const { sessionId, session } = result
 
-  // Sesión anónima (feature 8 — no implementada aún)
-  if ('anonymous' in session && (session as { anonymous?: boolean }).anonymous) {
+  // Sesión anónima
+  if (session.anonymous) {
     return c.json({ user: null, anonymous: true, sessionId })
   }
 
   // Sesión autenticada — buscar usuario en DB
+  if (!session.userId) {
+    return c.json({ user: null, anonymous: false })
+  }
+
   const userResult = await db
     .select()
     .from(users)

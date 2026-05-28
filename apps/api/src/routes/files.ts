@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
 import { db } from '../db/index'
 import { files, printConfigs } from '../db/schema'
 import type { AppEnv } from '../middleware/auth'
-import { authMiddleware } from '../middleware/auth'
-import { saveFile, deleteFile } from '../services/storage'
+import { optionalAuthMiddleware } from '../middleware/auth'
+import { saveFile, saveAnonymousFile, deleteFile } from '../services/storage'
 import { PDFDocument } from 'pdf-lib'
 
 const filesRoute = new Hono<AppEnv>()
@@ -81,7 +81,7 @@ function getFileExpiryDays(): number {
 
 // --- POST /files/upload ---
 
-filesRoute.post('/upload', authMiddleware, async (c) => {
+filesRoute.post('/upload', optionalAuthMiddleware, async (c) => {
   let formData: FormData
   try {
     formData = await c.req.formData()
@@ -126,6 +126,8 @@ filesRoute.post('/upload', authMiddleware, async (c) => {
   }
 
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const fileId = crypto.randomUUID()
 
   // Contar páginas
@@ -140,8 +142,23 @@ filesRoute.post('/upload', authMiddleware, async (c) => {
     }
   }
 
-  // Guardar archivo en disco
-  const storagePath = await saveFile(userId, fileId, file)
+  // Guardar archivo en disco (ruta depende de si es anónimo o autenticado)
+  let storagePath: string
+  let fileUserId: string | null = null
+  let fileSessionId: string | null = null
+
+  if (isAnonymous && sessionId) {
+    storagePath = await saveAnonymousFile(sessionId, fileId, file)
+    fileSessionId = sessionId
+  } else if (userId) {
+    storagePath = await saveFile(userId, fileId, file)
+    fileUserId = userId
+  } else {
+    return c.json(
+      { error: 'INTERNAL_ERROR', message: 'Error de sesión' },
+      500,
+    )
+  }
 
   const uploadedAt = Math.floor(Date.now() / 1000)
   const expiresAt = uploadedAt + getFileExpiryDays() * 24 * 60 * 60
@@ -151,7 +168,8 @@ filesRoute.post('/upload', authMiddleware, async (c) => {
     await db.transaction(async (tx) => {
       await tx.insert(files).values({
         id: fileId,
-        userId,
+        userId: fileUserId,
+        sessionId: fileSessionId,
         filename: file.name,
         originalName: file.name,
         storagePath,
@@ -205,8 +223,10 @@ filesRoute.post('/upload', authMiddleware, async (c) => {
 
 // --- GET /files ---
 
-filesRoute.get('/', authMiddleware, async (c) => {
+filesRoute.get('/', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const statusFilter = c.req.query('status')
 
   // Validar filtro de status si se proporciona
@@ -217,17 +237,25 @@ filesRoute.get('/', authMiddleware, async (c) => {
     )
   }
 
+  // Construir condición de propietario
+  let ownerFilter
+  if (userId && !isAnonymous) {
+    ownerFilter = eq(files.userId, userId)
+  } else if (sessionId && isAnonymous) {
+    ownerFilter = and(eq(files.sessionId, sessionId), isNull(files.userId))
+  } else {
+    return c.json({ files: [] }, 200)
+  }
+
   try {
-    let query = db
+    const rows = await db
       .select({
         file: files,
         config: printConfigs,
       })
       .from(files)
       .leftJoin(printConfigs, eq(files.id, printConfigs.fileId))
-      .where(eq(files.userId, userId))
-
-    const rows = await query
+      .where(ownerFilter)
 
     // Filtrar por status en memoria si se proporcionó
     const filtered = statusFilter
@@ -247,11 +275,28 @@ filesRoute.get('/', authMiddleware, async (c) => {
 
 // --- GET /files/:id ---
 
-filesRoute.get('/:id', authMiddleware, async (c) => {
+filesRoute.get('/:id', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const fileId = c.req.param('id')
 
+  // Construir condición de propiedad
+  let ownerCondition
+  if (userId && !isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.userId, userId))
+  } else if (sessionId && isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.sessionId, sessionId), isNull(files.userId))
+  }
+
   try {
+    if (!ownerCondition) {
+      return c.json(
+        { error: 'NOT_FOUND', message: 'El archivo no existe' },
+        404,
+      )
+    }
+
     const rows = await db
       .select({
         file: files,
@@ -259,10 +304,10 @@ filesRoute.get('/:id', authMiddleware, async (c) => {
       })
       .from(files)
       .leftJoin(printConfigs, eq(files.id, printConfigs.fileId))
-      .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+      .where(ownerCondition)
 
     if (rows.length === 0) {
-      // Verificar si el archivo existe pero pertenece a otro usuario
+      // Verificar si el archivo existe pero pertenece a otro usuario/sesión
       const existingFile = await db
         .select()
         .from(files)
@@ -293,8 +338,10 @@ filesRoute.get('/:id', authMiddleware, async (c) => {
 
 // --- PATCH /files/:id/config ---
 
-filesRoute.patch('/:id/config', authMiddleware, async (c) => {
+filesRoute.patch('/:id/config', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const fileId = c.req.param('id')
 
   let body: Record<string, unknown>
@@ -333,12 +380,27 @@ filesRoute.patch('/:id/config', authMiddleware, async (c) => {
     )
   }
 
+  // Construir condición de propiedad
+  let ownerCondition
+  if (userId && !isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.userId, userId))
+  } else if (sessionId && isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.sessionId, sessionId), isNull(files.userId))
+  }
+
   try {
-    // Verificar que el archivo existe y pertenece al usuario
+    if (!ownerCondition) {
+      return c.json(
+        { error: 'NOT_FOUND', message: 'El archivo no existe' },
+        404,
+      )
+    }
+
+    // Verificar que el archivo existe y pertenece al usuario/sesión
     const existingFiles = await db
       .select()
       .from(files)
-      .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+      .where(ownerCondition)
 
     if (existingFiles.length === 0) {
       const anyFile = await db
@@ -402,8 +464,10 @@ filesRoute.patch('/:id/config', authMiddleware, async (c) => {
 
 // --- PATCH /files/:id/status ---
 
-filesRoute.patch('/:id/status', authMiddleware, async (c) => {
+filesRoute.patch('/:id/status', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const fileId = c.req.param('id')
 
   let body: Record<string, unknown>
@@ -423,12 +487,27 @@ filesRoute.patch('/:id/status', authMiddleware, async (c) => {
     )
   }
 
+  // Construir condición de propiedad
+  let ownerCondition
+  if (userId && !isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.userId, userId))
+  } else if (sessionId && isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.sessionId, sessionId), isNull(files.userId))
+  }
+
   try {
-    // Verificar que el archivo existe y pertenece al usuario
+    if (!ownerCondition) {
+      return c.json(
+        { error: 'NOT_FOUND', message: 'El archivo no existe' },
+        404,
+      )
+    }
+
+    // Verificar que el archivo existe y pertenece al usuario/sesión
     const existingFiles = await db
       .select()
       .from(files)
-      .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+      .where(ownerCondition)
 
     if (existingFiles.length === 0) {
       const anyFile = await db
@@ -465,16 +544,33 @@ filesRoute.patch('/:id/status', authMiddleware, async (c) => {
 
 // --- DELETE /files/:id ---
 
-filesRoute.delete('/:id', authMiddleware, async (c) => {
+filesRoute.delete('/:id', optionalAuthMiddleware, async (c) => {
   const userId = c.get('userId')
+  const sessionId = c.get('sessionId')
+  const isAnonymous = c.get('isAnonymous')
   const fileId = c.req.param('id')
 
+  // Construir condición de propiedad
+  let ownerCondition
+  if (userId && !isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.userId, userId))
+  } else if (sessionId && isAnonymous) {
+    ownerCondition = and(eq(files.id, fileId), eq(files.sessionId, sessionId), isNull(files.userId))
+  }
+
   try {
-    // Verificar que el archivo existe y pertenece al usuario
+    if (!ownerCondition) {
+      return c.json(
+        { error: 'NOT_FOUND', message: 'El archivo no existe' },
+        404,
+      )
+    }
+
+    // Verificar que el archivo existe y pertenece al usuario/sesión
     const existingFiles = await db
       .select()
       .from(files)
-      .where(and(eq(files.id, fileId), eq(files.userId, userId)))
+      .where(ownerCondition)
 
     if (existingFiles.length === 0) {
       const anyFile = await db
