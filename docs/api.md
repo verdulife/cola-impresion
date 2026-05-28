@@ -335,8 +335,33 @@ Se llama internamente desde el registro, no directamente desde el frontend.
 
 ## Admin — `/admin`
 
-> Todas las rutas de `/admin` requieren autenticación con rol `admin`.
-> Autenticación vía cookie de sesión con usuario/contraseña de entorno.
+> Todas las rutas de `/admin` requieren autenticación con rol `admin`,
+> excepto `POST /admin/login`.
+> Autenticación vía cookie `admin_session` con usuario/contraseña de entorno.
+
+### POST /admin/login
+
+Autentica al operario del panel admin. Las credenciales se configuran en
+variables de entorno (`ADMIN_USER` y `ADMIN_PASSWORD`).
+
+**Body:**
+```json
+{
+  "username": "admin",
+  "password": "contraseña"
+}
+```
+
+**Respuesta 200:**
+```json
+{ "ok": true }
+```
+
+**Efecto secundario:** establece cookie `admin_session` HttpOnly, SameSite=Strict.
+
+**Errores:** `401` con código `INVALID_CREDENTIALS`.
+
+---
 
 ### GET /admin/clients
 
