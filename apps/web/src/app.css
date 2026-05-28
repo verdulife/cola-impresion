@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+@theme {
+	/* Colors — DESIGN.md */
+	--color-primary: #1A1A2E;
+	--color-secondary: #16213E;
+	--color-accent: #E63946;
+	--color-accent-hover: #C1121F;
+	--color-surface: #FFFFFF;
+	--color-surface-raised: #F8F9FA;
+	--color-surface-sunken: #F1F3F5;
+	--color-border: #DEE2E6;
+	--color-border-subtle: #E9ECEF;
+	--color-text-primary: #1A1A2E;
+	--color-text-secondary: #6C757D;
+	--color-text-disabled: #ADB5BD;
+	--color-text-on-accent: #FFFFFF;
+	--color-text-on-dark: #FFFFFF;
+	--color-success: #2D6A4F;
+	--color-success-surface: #D8F3DC;
+	--color-warning: #E76F51;
+	--color-warning-surface: #FFF3E0;
+	--color-error: #C1121F;
+	--color-error-surface: #FFE5E5;
+	--color-info: #457B9D;
+	--color-info-surface: #E8F4FD;
+	--color-status-pending: #E76F51;
+	--color-status-printed: #2D6A4F;
+	--color-status-anonymous: #ADB5BD;
+
+	/* Font families — DESIGN.md */
+	--font-display: 'Inter', sans-serif;
+	--font-body: 'Inter', sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
+
+	/* Font sizes — DESIGN.md typography scale */
+	--text-display: 2rem;
+	--text-h1: 1.5rem;
+	--text-h2: 1.25rem;
+	--text-h3: 1.125rem;
+	--text-body: 1rem;
+	--text-body-small: 0.875rem;
+	--text-caption: 0.75rem;
+	--text-label: 0.75rem;
+
+	/* Border radius — DESIGN.md */
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
+}
+
+/* Base styles */
+body {
+	font-family: var(--font-body);
+	color: var(--color-text-primary);
+	background-color: var(--color-surface);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}

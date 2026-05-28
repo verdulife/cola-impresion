@@ -14,42 +14,26 @@
 **Inicio:** 2025-11-15 10:30
 -->
 
-**ID:**
-**Título:**
-**App:**
-**Inicio:**
-
 ---
 
 ## Plan de la sesión
 
 <!-- Lista de pasos concretos que vas a seguir para implementar esta feature -->
 
-1.
-2.
-3.
-
 ---
 
 ## Decisiones tomadas
 
-- Auth admin independiente: cookie `admin_session` separada, sesiones en Map propio, HMAC con prefijo "admin-"
-- Admin system user (ID='admin') para FK constraint en print_jobs.admin_id
-- Nota dúplex generada en handler para coincidir con contrato API (singular/plural)
-- printedAt usa uploadedAt como fallback para archivos marcados manualmente
+<!-- Decisiones de diseño o implementación tomadas durante la sesión -->
 
 ---
 
 ## Bloqueos / pendientes
 
-- Ninguno. Feature completa.
+<!-- Bloqueos, dependencias no cumplidas, o decisiones pendientes -->
 
 ---
 
 ## Archivos modificados
 
-- `apps/api/src/middleware/adminAuth.ts` — creado
-- `apps/api/src/routes/admin.ts` — creado
-- `apps/api/src/routes/admin.test.ts` — creado
-- `apps/api/src/index.ts` — modificado (registro de rutas admin)
-- `progress/impl_7.md` — creado (informe de implementación)
+<!-- Lista de archivos creados o modificados en esta sesión -->

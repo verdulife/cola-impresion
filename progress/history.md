@@ -145,3 +145,69 @@ Implementación de los endpoints de administración (lista de clientes, detalle 
 - **Total: 70 tests, 0 fallos**
 
 ---
+
+## Sesión 2026-05-28 (continuación)
+
+**Feature:** 9 — Scaffolding y configuración de la app cliente (SvelteKit)
+**App:** web
+**Duración:** ~15min
+
+### Resumen
+Scaffolding completo de `apps/web` con SvelteKit + TypeScript + Tailwind CSS v4. El build pasa y el type check no tiene errores. Las rutas están creadas con contenido placeholder. Los tokens de diseño de DESIGN.md están configurados en `app.css`.
+
+### Archivos creados / modificados
+- `apps/web/package.json` — SvelteKit 2 + Tailwind CSS v4 + @tailwindcss/vite
+- `apps/web/svelte.config.js` — configuración SvelteKit
+- `apps/web/vite.config.ts` — Tailwind + SvelteKit plugins
+- `apps/web/tsconfig.json` — TypeScript strict
+- `apps/web/src/app.html` — HTML base
+- `apps/web/src/app.css` — tokens de diseño en @theme (colores, tipografía, espaciado, border-radius)
+- `apps/web/src/routes/+layout.svelte` — layout base con min-h-screen bg-surface
+- `apps/web/src/routes/+page.svelte` — placeholder "Próximamente"
+- `apps/web/src/routes/auth/login/+page.svelte` — placeholder
+- `apps/web/src/routes/auth/register/+page.svelte` — placeholder
+- `apps/web/src/routes/settings/+page.svelte` — placeholder
+- `apps/web/.env` — PUBLIC_API_URL=http://localhost:3001
+- `apps/web/.env.example` — template
+- `apps/web/.gitignore` — excluye .svelte-kit, node_modules
+- `apps/web/src/lib/components/.gitkeep`, `utils/.gitkeep`, `stores/.gitkeep` — estructura lib
+- `apps/web/static/.gitkeep` — static assets
+
+### Decisiones relevantes
+- Tailwind CSS v4 con `@tailwindcss/vite` plugin (no postcss.config.cjs) según docs/conventions.md
+- Layout sin header persistente: correcto según ux.md ("no tiene barra de navegación persistente")
+- El script de test en package.json es `echo "No tests yet"` — init.ps1 genera falso positivo porque busca "pass|ok|passed" en la salida de `bun test`
+
+### Verificación
+- `bun run build` — pasa (160 módulos, built in ~6s)
+- `bun run check` — 0 errores, 1 warning no crítico (missing @types/node)
+- `bun test` — 0 test files (esperado, scaffolding puro)
+
+---
+
+## Sesión 2026-05-28 (continuación)
+
+**Feature:** 10 — Pantallas de login y registro
+**App:** web
+**Duración:** ~20min
+
+### Resumen
+Implementación de los formularios de login y registro para la app cliente. Usa SvelteKit form actions + server actions para llamar a los endpoints del backend. Validación en cliente con JavaScript, errores inline en rojo debajo de cada campo.
+
+### Archivos creados / modificados
+- `apps/web/src/routes/auth/login/+page.svelte` — formulario con email + password, validación, errores inline, enlace a register
+- `apps/web/src/routes/auth/login/+page.server.ts` — action que hace fetch POST a /auth/login con credentials: 'include', redirige a / si éxito
+- `apps/web/src/routes/auth/register/+page.svelte` — formulario con email + password (mín 8 chars), validación, errores inline, enlace a login
+- `apps/web/src/routes/auth/register/+page.server.ts` — action que hace fetch POST a /auth/register con credentials: 'include', redirige a / si éxito
+
+### Decisiones relevantes
+- Uso de form actions de SvelteKit (+page.server.ts) en vez de fetch directo desde el cliente
+- `credentials: 'include'` en los fetch para enviar cookies de sesión
+- Validación en cliente con handleSubmit() y regex para email
+- Errores del servidor mostrados inline con `text-error` (no toast)
+
+### Verificación
+- `bun run build` — pasa (5.74s)
+- `bun run check` — 0 errores
+
+---

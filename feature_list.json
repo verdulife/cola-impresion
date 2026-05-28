@@ -77,7 +77,7 @@
     "layer": "frontend",
     "title": "Scaffolding y configuración de la app cliente (SvelteKit)",
     "description": "Inicializar apps/web con SvelteKit + TypeScript + Tailwind + bun. Configurar el tema de Tailwind con los tokens de DESIGN.md. Configurar las rutas base: / (pantalla principal), /settings (ajustes e historial), /auth/login, /auth/register. Layout base con header mínimo.",
-    "status": "pending",
+    "status": "done",
     "depends_on": [1]
   },
   {
@@ -86,7 +86,7 @@
     "layer": "frontend",
     "title": "Pantallas de login y registro",
     "description": "Páginas /auth/login y /auth/register. Formularios minimalistas: solo email y contraseña. El login guarda la cookie de sesión. Redirección a / tras autenticación exitosa. Enlace entre las dos pantallas. Manejo de errores inline (no toast). Usuario anónimo puede acceder a / sin pasar por estas pantallas.",
-    "status": "pending",
+    "status": "done",
     "depends_on": [3, 9]
   },
   {
