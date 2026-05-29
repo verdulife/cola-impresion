@@ -7,7 +7,7 @@
 
 	type UploadState = 'idle' | 'dragover' | 'uploading' | 'error';
 
-	let state: UploadState = $state('idle');
+	let uploadState: UploadState = $state('idle');
 	let errorMessage: string = $state('');
 	let progress: number = $state(0);
 	let fileInput: HTMLInputElement;
@@ -41,15 +41,15 @@
 
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
-		if (state !== 'error') {
-			state = 'dragover';
+		if (uploadState !== 'error') {
+			uploadState = 'dragover';
 		}
 	}
 
 	function handleDragLeave(e: DragEvent) {
 		e.preventDefault();
-		if (state === 'dragover') {
-			state = 'idle';
+		if (uploadState === 'dragover') {
+			uploadState = 'idle';
 			errorMessage = '';
 		}
 	}
@@ -60,12 +60,12 @@
 		if (files && files.length > 0) {
 			processFile(files[0]);
 		} else {
-			state = 'idle';
+			uploadState = 'idle';
 		}
 	}
 
 	function handleClick() {
-		if (state === 'idle' || state === 'error') {
+		if (uploadState === 'idle' || uploadState === 'error') {
 			fileInput?.click();
 		}
 	}
@@ -81,28 +81,28 @@
 
 	async function processFile(file: File) {
 		if (!isValidType(file)) {
-			state = 'error';
+			uploadState = 'error';
 			errorMessage = 'Solo se aceptan PDF, JPG, PNG y TIFF';
 			return;
 		}
 
 		if (!isValidSize(file)) {
-			state = 'error';
+			uploadState = 'error';
 			errorMessage = 'El archivo supera el límite de 50MB';
 			return;
 		}
 
-		state = 'uploading';
+		uploadState = 'uploading';
 		progress = 0;
 		errorMessage = '';
 
 		try {
 			const uploadedFile = await uploadFile(file);
 			onupload?.(uploadedFile);
-			state = 'idle';
+			uploadState = 'idle';
 			progress = 0;
 		} catch (err) {
-			state = 'error';
+			uploadState = 'error';
 			errorMessage = err instanceof Error ? err.message : 'Error al subir el archivo';
 			progress = 0;
 		}
@@ -156,9 +156,9 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="upload-zone"
-	class:dragover={state === 'dragover'}
-	class:uploading={state === 'uploading'}
-	class:error={state === 'error'}
+	class:dragover={uploadState === 'dragover'}
+	class:uploading={uploadState === 'uploading'}
+	class:error={uploadState === 'error'}
 	onclick={handleClick}
 	ondragover={handleDragOver}
 	ondragleave={handleDragLeave}
@@ -174,7 +174,7 @@
 		class="hidden"
 	/>
 
-	{#if state === 'uploading'}
+	{#if uploadState === 'uploading'}
 		<div class="upload-content">
 			<div class="upload-icon">⏳</div>
 			<p class="upload-text">Subiendo archivo...</p>
@@ -183,7 +183,7 @@
 			</div>
 			<p class="progress-text">{progress}%</p>
 		</div>
-	{:else if state === 'error'}
+	{:else if uploadState === 'error'}
 		<div class="upload-content">
 			<div class="upload-icon">⚠️</div>
 			<p class="upload-text error-text">{errorMessage}</p>

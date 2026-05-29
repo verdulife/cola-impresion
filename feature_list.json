@@ -104,7 +104,7 @@
     "layer": "frontend",
     "title": "Componente FileCard y PrintConfig Panel",
     "description": "FileCard según DESIGN.md: icono de tipo, nombre truncado, ConfigChips de configuración activa, botón de eliminar. Al tocar la tarjeta se expande el PrintConfig Panel inline: cuatro grupos de opciones (Tamaño, Color, Caras, Papel) con ConfigChips. Selección guarda automáticamente via PATCH /files/:id/config sin botón de confirmar.",
-    "status": "pending",
+    "status": "done",
     "depends_on": [5, 11]
   },
   {
