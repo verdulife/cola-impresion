@@ -113,7 +113,7 @@
     "layer": "frontend",
     "title": "Pantalla principal: layout sin scroll global",
     "description": "Layout de la pantalla / con UploadZone en la mitad superior y lista de FileCards en la mitad inferior con scroll interno propio. En móvil ambos bloques deben caber en el viewport sin scroll de página. UserSettingsButton fijo en esquina superior derecha. AnonymousBanner si el usuario no está autenticado (aparece una vez por sesión).",
-    "status": "pending",
+    "status": "done",
     "depends_on": [11, 12]
   },
   {

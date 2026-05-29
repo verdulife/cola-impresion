@@ -211,3 +211,63 @@ Implementación de los formularios de login y registro para la app cliente. Usa 
 - `bun run check` — 0 errores
 
 ---
+
+## Sesión 2026-05-29
+
+**Features:** 11 y 12 + fix CORS
+**App:** web + api
+**Duración:** ~1h
+
+### Resumen
+Implementación del componente UploadZone (Feature 11) y los componentes FileCard, PrintConfigPanel y ConfigChip (Feature 12). También se añadió middleware CORS al backend para permitir peticiones del frontend en desarrollo.
+
+### Archivos creados / modificados
+- `apps/api/src/index.ts` — añadido cors middleware de Hono con ALLOWED_ORIGIN env var
+- `apps/web/src/lib/components/UploadZone.svelte` — drag & drop, validación, progress bar, usa PUBLIC_API_URL
+- `apps/web/src/lib/components/ConfigChip.svelte` — chip atómico con estados active/inactive
+- `apps/web/src/lib/components/PrintConfigPanel.svelte` — 4 grupos de opciones, llama PATCH /files/:id/config
+- `apps/web/src/lib/components/FileCard.svelte` — tarjeta expandible con config, eliminar, emit events
+- `apps/web/src/routes/+page.svelte` — mantiene UploadZone + FileCards en lista
+
+### Decisiones relevantes
+- Variable `state` renombrada a `uploadState` en UploadZone para evitar colisión con rune `$state` de Svelte 5
+- CORS permite origen configurable via ALLOWED_ORIGIN (default: http://localhost:5173)
+- PrintConfigPanel hace PATCH automático al cambiar cada chip (sin botón confirmar)
+
+### Bugs corregidos
+- UploadZone usaba `/api/files/upload` hardcodeado → `${PUBLIC_API_URL}/files/upload`
+- UploadZone usaba `info-surface` en dragover → `error-surface` según DESIGN.md
+- UploadZone variable `state` colisionaba con rune `$state` → renombrada a `uploadState`
+
+### Verificación
+- `bun run build` — pasa (173 módulos)
+- `bun run check` — 0 errores (1 warning no crítico)
+- Tests API: 70 passing
+
+---
+
+## Sesión 2026-05-29 (mañana)
+
+**Feature:** 13 — Pantalla principal con layout sin scroll global
+**App:** web
+**Duración:** ~20min
+
+### Resumen
+Layout completo de la pantalla principal: UserSettingsButton fijo en esquina superior derecha, AnonymousBanner para usuarios no autenticados (aparece una vez por sesión via sessionStorage), UploadZone en la mitad superior y FileCards con scroll interno propio en la mitad inferior.
+
+### Archivos creados / modificados
+- `apps/web/src/lib/components/UserSettingsButton.svelte` — botón fijo ⚙️, navega a /settings
+- `apps/web/src/lib/components/AnonymousBanner.svelte` — banner warning con "Crear cuenta" y "Continuar sin cuenta", sessionStorage
+- `apps/web/src/routes/+layout.svelte` — importa UserSettingsButton
+- `apps/web/src/routes/+page.svelte` — layout sin scroll global, flex column, UploadZone ~40vh, FileCards con overflow-y-auto
+
+### Decisiones relevantes
+- AnonymousBanner usa sessionStorage para aparecer solo una vez por sesión del navegador
+- Layout sin scroll global: `height: 100vh; overflow: hidden` en page-container
+- Detección de anonymous via GET /auth/me en onMount
+
+### Verificación
+- `bun run build` — pasa (177 módulos)
+- `bun run check` — 0 errores (1 warning preexistente)
+
+---
